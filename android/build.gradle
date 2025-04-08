@@ -28,7 +28,7 @@ android {
 
 
     compileSdkVersion 35
-    namespace 'kw.com.trolley.ecom'
+    namespace 'com.chuanpham.dynamic_icon_flutter'
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
