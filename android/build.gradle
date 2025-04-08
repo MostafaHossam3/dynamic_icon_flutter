@@ -25,8 +25,6 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 
 android {
-
-
     compileSdkVersion 35
     namespace 'com.chuanpham.dynamic_icon_flutter'
 
