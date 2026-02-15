@@ -1,5 +1,4 @@
 package com.chuanpham.dynamic_icon_flutter
-
 import android.app.Activity
 import android.app.Application
 import android.content.ComponentName
@@ -46,22 +45,36 @@ class DynamicIconFlutterPlugin : ContextAwarePlugin() {
 
     //dynamically change app icon
     private fun setIcon(targetIcon: String, activitiesArray: List<String>) {
-        val context = applicationContext ?: return
-        val packageManager = context.packageManager
-        val packageName = context.packageName
+        val packageManager: PackageManager = applicationContext!!.packageManager
+        val packageName = applicationContext!!.packageName
+        val className = StringBuilder()
+        className.append(packageName)
+        className.append(".")
+        className.append(targetIcon)
 
         for (value in activitiesArray) {
-            val newState = if (value == targetIcon) {
+            val action = if (value == targetIcon) {
                 PackageManager.COMPONENT_ENABLED_STATE_ENABLED
             } else {
                 PackageManager.COMPONENT_ENABLED_STATE_DISABLED
             }
-
             packageManager.setComponentEnabledSetting(
-                ComponentName(packageName, "$packageName.$value"),
-                newState,
-                PackageManager.DONT_KILL_APP
+                    ComponentName(packageName!!, "$packageName.$value"),
+                    action, PackageManager.DONT_KILL_APP
             )
+        }
+
+        //finish current activity & launch new intent to prevent app from killing itself!
+        //check if android version is greater than 8
+        if (VERSION.SDK_INT >= VERSION_CODES.O) {
+            val intent = Intent()
+            intent.setClassName(packageName!!, className.toString())
+            intent.action = Intent.ACTION_MAIN
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or
+                    Intent.FLAG_ACTIVITY_CLEAR_TASK
+             this.activity?.finish()
+            startActivity(this.applicationContext!!, intent, null)
         }
     }
 
@@ -72,12 +85,11 @@ abstract class ContextAwarePlugin : FlutterPlugin, ActivityAware, MethodChannel.
 
     abstract val pluginName: String
 
-    private lateinit var channel: MethodChannel
+    private lateinit var channel : MethodChannel
 
     protected val activity get() = activityReference.get()
-    protected val applicationContext
-        get() =
-            contextReference.get() ?: activity?.applicationContext
+    protected val applicationContext get() =
+        contextReference.get() ?: activity?.applicationContext
 
     private var activityReference = WeakReference<Activity>(null)
     private var contextReference = WeakReference<Context>(null)
